@@ -4,15 +4,17 @@ import (
 	"log"
 	"os"
 
-	"github.com/bmizerany/pat"
 	"github.com/codegangsta/negroni"
+	"github.com/gorilla/mux"
 
+	"github.com/Altoros/cf-cassandra-service-broker/api"
 	"github.com/Altoros/cf-cassandra-service-broker/config"
 )
 
 type AppContext struct {
-	appConfig *config.Config
-	negroni   *negroni.Negroni
+	appConfig  *config.Config
+	negroni    *negroni.Negroni
+	mainRouter *mux.Router
 }
 
 func NewApp(appConfig *config.Config) (*AppContext, error) {
@@ -20,6 +22,12 @@ func NewApp(appConfig *config.Config) (*AppContext, error) {
 
 	app := new(AppContext)
 	app.appConfig = appConfig
+
+	negroni := negroni.Classic()
+	mainRouter := mux.NewRouter()
+	negroni.UseHandler(mainRouter)
+	app.negroni = negroni
+	app.mainRouter = mainRouter
 
 	err = app.initApi()
 	if err != nil {
@@ -40,9 +48,10 @@ func (app *AppContext) Stop() {
 }
 
 func (app *AppContext) initApi() error {
-	mux := pat.New()
-	app.negroni = negroni.Classic()
-	app.negroni.UseHandler(mux)
+	apiRouter := app.mainRouter.PathPrefix("/v2").Subrouter()
+
+	catalogController := api.NewCatalogController(&app.appConfig.Catalog)
+	catalogController.AddRoutes(apiRouter)
 
 	return nil
 }

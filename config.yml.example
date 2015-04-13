@@ -1,3 +1,30 @@
 username: admin
 password: password
 port: 8080
+
+catalog:
+  services:
+  - bindable: true
+    name: Apache Cassandra
+    description: Open source distributed database management system
+    id: 33d2eeb0-0236-4c83-b494-da3faeb5b2e8
+    metadata:
+      displayName: Apache Cassandra
+      documentationUrl: http://docs.datastax.com/en/cassandra/2.0/cassandra/gettingStartedCassandraIntro.html
+      imageUrl: http://cassandra.apache.org/media/img/cassandra_logo.png
+      longDescription:
+      providerDisplayName: Apache Cassandra
+      supportUrl:
+    plans:
+    - name: free
+      description: A separate keyspace with unlimited access
+      id: 946ce484-376b-41b4-8c4e-4bc830676115
+      metadata:
+        costs:
+        - amount:
+            usd: 0.0
+          unit: MONTHLY
+        displayName: Keyspace
+    tags:
+    - nosql
+    - database

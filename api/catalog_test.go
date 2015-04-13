@@ -10,16 +10,16 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/bmizerany/pat"
+	"github.com/gorilla/mux"
 )
 
 var _ = Describe("Catalog", func() {
 	var request *http.Request
 	var recorder *httptest.ResponseRecorder
-	var mux *pat.PatternServeMux
+	var router *mux.Router
 
 	BeforeEach(func() {
-		mux = pat.New()
+		router = mux.NewRouter()
 		recorder = httptest.NewRecorder()
 	})
 
@@ -62,10 +62,10 @@ var _ = Describe("Catalog", func() {
 			catalog := config.CatalogConfig{
 				Services: []config.ServiceConfig{service},
 			}
-			catalogController := NewCatalog(&catalog)
-			catalogController.AddRoutes(mux)
+			catalogController := NewCatalogController(&catalog)
+			catalogController.AddRoutes(router)
 			request, _ = http.NewRequest("GET", "/catalog", nil)
-			mux.ServeHTTP(recorder, request)
+			router.ServeHTTP(recorder, request)
 		})
 
 		It("returns a status code of 200", func() {
