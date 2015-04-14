@@ -8,26 +8,26 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/Altoros/cf-cassandra-service-broker/api"
+	"github.com/Altoros/cf-cassandra-service-broker/common"
 	"github.com/Altoros/cf-cassandra-service-broker/config"
 )
 
 type AppContext struct {
-	appConfig  *config.Config
-	negroni    *negroni.Negroni
-	mainRouter *mux.Router
+	config           *config.Config
+	negroni          *negroni.Negroni
+	cassandraService common.CassandraService
 }
 
 func NewApp(appConfig *config.Config) (*AppContext, error) {
 	var err error
 
 	app := new(AppContext)
-	app.appConfig = appConfig
+	app.config = appConfig
 
-	negroni := negroni.Classic()
-	mainRouter := mux.NewRouter()
-	negroni.UseHandler(mainRouter)
-	app.negroni = negroni
-	app.mainRouter = mainRouter
+	err = app.initCassandra()
+	if err != nil {
+		return nil, err
+	}
 
 	err = app.initApi()
 	if err != nil {
@@ -38,20 +38,42 @@ func NewApp(appConfig *config.Config) (*AppContext, error) {
 }
 
 func (app *AppContext) Start() {
-	log.Println("Starting broker on port", app.appConfig.PortStr())
-	app.negroni.Run(":" + app.appConfig.PortStr())
+	log.Println("Starting broker on port", app.config.PortStr())
+	app.negroni.Run(":" + app.config.PortStr())
 }
 
 func (app *AppContext) Stop() {
 	log.Println("Stopping broker")
+	app.cassandraService.Stop()
 	os.Exit(0)
 }
 
-func (app *AppContext) initApi() error {
-	apiRouter := app.mainRouter.PathPrefix("/v2").Subrouter()
+func (app *AppContext) initCassandra() error {
+	var err error
 
-	catalogController := api.NewCatalogController(&app.appConfig.Catalog)
+	cassandraCfg := app.config.Cassandra
+	app.cassandraService, err = common.NewCassandraService(cassandraCfg.Nodes, cassandraCfg.Keyspace,
+		cassandraCfg.Username, cassandraCfg.Password)
+
+	return err
+}
+
+func (app *AppContext) initApi() error {
+	negroni := negroni.New(
+		negroni.NewRecovery(),
+		negroni.NewLogger(),
+	)
+	mainRouter := mux.NewRouter()
+	negroni.UseHandler(mainRouter)
+	app.negroni = negroni
+
+	apiRouter := mainRouter.PathPrefix("/v2").Subrouter()
+
+	catalogController := api.NewCatalogController(&app.config.Catalog)
 	catalogController.AddRoutes(apiRouter)
+
+	serviceInstancesController := api.NewServiceInstancesController(app.cassandraService)
+	serviceInstancesController.AddRoutes(apiRouter)
 
 	return nil
 }

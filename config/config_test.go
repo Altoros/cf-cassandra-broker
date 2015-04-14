@@ -80,6 +80,23 @@ catalog:
 
 		})
 
+		It("sets cassandra config", func() {
+			var b = []byte(`
+cassandra:
+  nodes:
+  - 127.0.0.1
+  keyspace: broker
+  username: username
+  password: password
+`)
+
+			config.Initialize(b)
+			Ω(config.Cassandra.Nodes).To(Equal([]string{"127.0.0.1"}))
+			Ω(config.Cassandra.Keyspace).To(Equal("broker"))
+			Ω(config.Cassandra.Username).To(Equal("username"))
+			Ω(config.Cassandra.Password).To(Equal("password"))
+		})
+
 		It("sets username", func() {
 			var b = []byte(`
 username: user
