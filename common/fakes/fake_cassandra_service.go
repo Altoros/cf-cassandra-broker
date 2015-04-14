@@ -21,3 +21,10 @@ func (cs *FakeCassandraService) CreateInstance(instanceId string) error {
 	}
 	return nil
 }
+
+func (cs *FakeCassandraService) DeleteInstance(instanceId string) error {
+	if !cs.InstanceExist {
+		return errors.New("instance does not exist")
+	}
+	return nil
+}

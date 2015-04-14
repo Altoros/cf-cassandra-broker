@@ -20,10 +20,11 @@ func NewServiceInstancesController(cassandraService common.CassandraService) *se
 }
 
 func (c *serviceInstancesController) AddRoutes(router *mux.Router) {
-	router.HandleFunc("/service_instances/{instance_id}", c.createServiceInstance).Methods("PUT")
+	router.HandleFunc("/service_instances/{instance_id}", c.create).Methods("PUT")
+	router.HandleFunc("/service_instances/{instance_id}", c.delete).Methods("DELETE")
 }
 
-func (c *serviceInstancesController) createServiceInstance(res http.ResponseWriter, req *http.Request) {
+func (c *serviceInstancesController) create(res http.ResponseWriter, req *http.Request) {
 	var err error
 
 	vars := mux.Vars(req)
@@ -31,19 +32,46 @@ func (c *serviceInstancesController) createServiceInstance(res http.ResponseWrit
 
 	instanceExist, err := c.cassandraService.IsInstanceExist(instanceId)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("Create instance:", err.Error())
 		renderer.JSON(res, http.StatusInternalServerError, emptyResponse)
+		return
+	}
+
+	if instanceExist {
+		renderer.JSON(res, http.StatusConflict, ApiError("instance %s already exist", instanceId))
 	} else {
-		if instanceExist {
-			renderer.JSON(res, http.StatusConflict, emptyResponse)
-		} else {
-			err = c.cassandraService.CreateInstance(instanceId)
-			if err != nil {
-				log.Println(err.Error())
-				renderer.JSON(res, http.StatusInternalServerError, emptyResponse)
-			} else {
-				renderer.JSON(res, http.StatusCreated, emptyResponse)
-			}
+		err = c.cassandraService.CreateInstance(instanceId)
+		if err != nil {
+			log.Println("Create instance:", err.Error())
+			renderer.JSON(res, http.StatusInternalServerError, emptyResponse)
+			return
 		}
+		renderer.JSON(res, http.StatusCreated, emptyResponse)
+	}
+}
+
+func (c *serviceInstancesController) delete(res http.ResponseWriter, req *http.Request) {
+	var err error
+
+	vars := mux.Vars(req)
+	instanceId := vars["instance_id"]
+
+	instanceExist, err := c.cassandraService.IsInstanceExist(instanceId)
+	if err != nil {
+		log.Println("Delete instance:", err.Error())
+		renderer.JSON(res, http.StatusInternalServerError, emptyResponse)
+		return
+	}
+
+	if instanceExist {
+		err = c.cassandraService.DeleteInstance(instanceId)
+		if err != nil {
+			log.Println("Delete instance:", err.Error())
+			renderer.JSON(res, http.StatusInternalServerError, emptyResponse)
+			return
+		}
+		renderer.JSON(res, http.StatusOK, emptyResponse)
+	} else {
+		renderer.JSON(res, http.StatusGone, ApiError("instance %s does not exist", instanceId))
 	}
 }

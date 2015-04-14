@@ -10,6 +10,7 @@ type CassandraService interface {
 	Stop()
 	IsInstanceExist(instanceId string) (bool, error)
 	CreateInstance(instanceId string) error
+	DeleteInstance(instanceId string) error
 }
 
 type cassandraService struct {
@@ -62,6 +63,22 @@ func (cs *cassandraService) CreateInstance(instanceId string) error {
 	}
 
 	err = cs.session.Query("INSERT INTO instances(id, created_at) VALUES(?, ?)", instanceId, time.Now()).Exec()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (cs *cassandraService) DeleteInstance(instanceId string) error {
+	var err error
+
+	err = cs.session.Query("DELETE FROM instances WHERE id=?", instanceId).Exec()
+	if err != nil {
+		return err
+	}
+
+	err = cs.session.Query("DROP KEYSPACE " + instanceId).Exec()
 	if err != nil {
 		return err
 	}

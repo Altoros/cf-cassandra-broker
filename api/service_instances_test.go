@@ -66,6 +66,44 @@ var _ = Describe("Service instances", func() {
 			})
 
 			It("returns empty json", func() {
+				Ω(recorder.Body).To(MatchJSON(`{"description": "instance foobar already exist"}`))
+			})
+		})
+	})
+
+	Describe("DELETE /service_instances/:instance_id", func() {
+		Context("Instance does not exist", func() {
+			BeforeEach(func() {
+				cassandraService.InstanceExist = false
+				request, _ = http.NewRequest("DELETE", "/service_instances/foobar", nil)
+				router.ServeHTTP(recorder, request)
+			})
+
+			It("returns a status code of 410", func() {
+				Ω(recorder.Code).To(Equal(410))
+			})
+
+			It("returns empty json", func() {
+				Ω(recorder.Body).To(MatchJSON(`{"description": "instance foobar does not exist"}`))
+			})
+		})
+
+		Context("Instance exists", func() {
+			BeforeEach(func() {
+				cassandraService.InstanceExist = true
+				request, _ = http.NewRequest("DELETE", "/service_instances/foobar", nil)
+				router.ServeHTTP(recorder, request)
+			})
+
+			It("returns a status code of 200", func() {
+				Ω(recorder.Code).To(Equal(200))
+			})
+
+			It("returns application/json content type", func() {
+				Ω(recorder.Header()["Content-Type"]).To(Equal([]string{"application/json; charset=UTF-8"}))
+			})
+
+			It("returns empty json", func() {
 				Ω(recorder.Body).To(MatchJSON("{}"))
 			})
 		})
