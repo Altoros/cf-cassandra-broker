@@ -2,7 +2,6 @@ package broker
 
 import (
 	"log"
-	"os"
 
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
@@ -45,7 +44,6 @@ func (app *AppContext) Start() {
 func (app *AppContext) Stop() {
 	log.Println("Stopping broker")
 	app.cassandraService.Stop()
-	os.Exit(0)
 }
 
 func (app *AppContext) initCassandra() error {
