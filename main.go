@@ -32,11 +32,15 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	k := make(chan os.Signal, 1)
-	signal.Notify(k, os.Interrupt, os.Kill)
 	go func() {
-		<-k
-		app.Stop()
+		app.Start()
 	}()
-	app.Start()
+	handleSignals()
+	app.Stop()
+}
+
+func handleSignals() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill)
+	<-c
 }
