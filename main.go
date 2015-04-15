@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/Altoros/cf-cassandra-service-broker/app"
+	"github.com/Altoros/cf-cassandra-service-broker/broker"
 	"github.com/Altoros/cf-cassandra-service-broker/config"
 )
 
@@ -27,16 +27,16 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	app, err := app.NewApp(config)
+	broker, err := broker.New(config)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	go func() {
-		app.Start()
+		broker.Start()
 	}()
 	handleSignals()
-	app.Stop()
+	broker.Stop()
 }
 
 func handleSignals() {

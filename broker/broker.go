@@ -1,4 +1,4 @@
-package app
+package broker
 
 import (
 	"log"
@@ -18,7 +18,7 @@ type AppContext struct {
 	cassandraService common.CassandraService
 }
 
-func NewApp(appConfig *config.Config) (*AppContext, error) {
+func New(appConfig *config.Config) (*AppContext, error) {
 	var err error
 
 	app := new(AppContext)
