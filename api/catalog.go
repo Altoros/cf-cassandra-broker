@@ -19,9 +19,9 @@ func NewCatalogController(catalog *config.CatalogConfig) *catalogController {
 }
 
 func (c *catalogController) AddRoutes(router *mux.Router) {
-	router.HandleFunc("/catalog", c.catalogHandler).Methods("GET")
+	router.HandleFunc("/catalog", c.show).Methods("GET")
 }
 
-func (c *catalogController) catalogHandler(res http.ResponseWriter, req *http.Request) {
+func (c *catalogController) show(res http.ResponseWriter, req *http.Request) {
 	renderer.JSON(res, http.StatusOK, c.catalog)
 }

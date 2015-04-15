@@ -2,6 +2,7 @@ package broker
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
@@ -13,7 +14,7 @@ import (
 
 type AppContext struct {
 	config           *config.Config
-	negroni          *negroni.Negroni
+	apiHandler       *negroni.Negroni
 	cassandraService common.CassandraService
 }
 
@@ -37,8 +38,9 @@ func New(appConfig *config.Config) (*AppContext, error) {
 }
 
 func (app *AppContext) Start() {
-	log.Println("Starting broker on port", app.config.PortStr())
-	app.negroni.Run(":" + app.config.PortStr())
+	port := app.config.PortStr()
+	log.Println("Starting broker on port", port)
+	http.ListenAndServe(":"+port, app.apiHandler)
 }
 
 func (app *AppContext) Stop() {
@@ -49,21 +51,21 @@ func (app *AppContext) Stop() {
 func (app *AppContext) initCassandra() error {
 	var err error
 
-	cassandraCfg := app.config.Cassandra
-	app.cassandraService, err = common.NewCassandraService(cassandraCfg.Nodes, cassandraCfg.Keyspace,
-		cassandraCfg.Username, cassandraCfg.Password)
+	cfg := app.config.Cassandra
+	app.cassandraService, err = common.NewCassandraService(cfg.Nodes, cfg.Keyspace,
+		cfg.Username, cfg.Password)
 
 	return err
 }
 
 func (app *AppContext) initApi() error {
-	negroni := negroni.New(
+	apiHandler := negroni.New(
 		negroni.NewRecovery(),
-		negroni.NewLogger(),
+		api.NewLogger(),
 	)
 	mainRouter := mux.NewRouter()
-	negroni.UseHandler(mainRouter)
-	app.negroni = negroni
+	apiHandler.UseHandler(mainRouter)
+	app.apiHandler = apiHandler
 
 	apiRouter := mainRouter.PathPrefix("/v2").Subrouter()
 
