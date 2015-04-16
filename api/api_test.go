@@ -112,10 +112,8 @@ var _ = Describe("API", func() {
 				},
 			}
 
-			apiInstance.Config = &config.Config{
-				Catalog: config.CatalogConfig{
-					Services: []config.ServiceConfig{service},
-				},
+			apiInstance.Catalog = &config.CatalogConfig{
+				Services: []config.ServiceConfig{service},
 			}
 
 			request, _ = http.NewRequest("GET", "/v2/catalog", nil)

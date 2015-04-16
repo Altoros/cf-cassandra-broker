@@ -36,7 +36,7 @@ func New(appConfig *config.Config) (*AppContext, error) {
 
 	app.serveMux = http.NewServeMux()
 
-	api := api.New(app.config, app.cassandraSession)
+	api := api.New(&app.config.Catalog, app.cassandraSession)
 	app.serveMux.Handle("/v2/", api)
 
 	return app, nil

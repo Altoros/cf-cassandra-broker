@@ -21,13 +21,13 @@ var (
 
 type ApiHandler struct {
 	Handler *negroni.Negroni
-	Config  *config.Config
+	Catalog *config.CatalogConfig
 	Service ServiceProvider
 }
 
-func New(config *config.Config, session *gocql.Session) http.Handler {
+func New(catalog *config.CatalogConfig, session *gocql.Session) http.Handler {
 	apiHandler := new(ApiHandler)
-	apiHandler.Config = config
+	apiHandler.Catalog = catalog
 
 	apiLogger := NewLogger()
 	panicRecovery := negroni.NewRecovery()
@@ -63,7 +63,7 @@ func writeError(w http.ResponseWriter, err *cf.ServiceProviderError) {
 }
 
 func (a *ApiHandler) ShowCatalog(w http.ResponseWriter, r *http.Request) {
-	renderer.JSON(w, http.StatusOK, a.Config.Catalog)
+	renderer.JSON(w, http.StatusOK, a.Catalog)
 }
 
 func (a *ApiHandler) CreateServiceInstance(w http.ResponseWriter, r *http.Request) {
