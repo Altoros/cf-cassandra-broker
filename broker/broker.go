@@ -4,76 +4,51 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/codegangsta/negroni"
-	"github.com/gorilla/mux"
+	"github.com/gocql/gocql"
 
 	"github.com/Altoros/cf-cassandra-service-broker/api"
-	"github.com/Altoros/cf-cassandra-service-broker/common"
 	"github.com/Altoros/cf-cassandra-service-broker/config"
 )
 
 type AppContext struct {
 	config           *config.Config
-	apiHandler       *negroni.Negroni
-	cassandraService common.CassandraService
+	serveMux         *http.ServeMux
+	cassandraSession *gocql.Session
 }
 
 func New(appConfig *config.Config) (*AppContext, error) {
-	var err error
-
 	app := new(AppContext)
 	app.config = appConfig
 
-	err = app.initCassandra()
-	if err != nil {
-		return nil, err
+	cluster := gocql.NewCluster(appConfig.Cassandra.Nodes...)
+	cluster.Keyspace = appConfig.Cassandra.Keyspace
+	cluster.Consistency = gocql.One
+	cluster.Authenticator = gocql.PasswordAuthenticator{
+		Username: appConfig.Cassandra.Username,
+		Password: appConfig.Cassandra.Password,
 	}
 
-	err = app.initApi()
+	session, err := cluster.CreateSession()
 	if err != nil {
 		return nil, err
 	}
+	app.cassandraSession = session
+
+	app.serveMux = http.NewServeMux()
+
+	api := api.New(app.config, app.cassandraSession)
+	app.serveMux.Handle("/v2/", api)
 
 	return app, nil
 }
 
 func (app *AppContext) Start() {
 	port := app.config.PortStr()
-	log.Println("Starting broker on port", port)
-	http.ListenAndServe(":"+port, app.apiHandler)
+	log.Println("Start broker on port", port)
+	http.ListenAndServe(":"+port, app.serveMux)
 }
 
 func (app *AppContext) Stop() {
-	log.Println("Stopping broker")
-	app.cassandraService.Stop()
-}
-
-func (app *AppContext) initCassandra() error {
-	var err error
-
-	cfg := app.config.Cassandra
-	app.cassandraService, err = common.NewCassandraService(cfg.Nodes, cfg.Keyspace,
-		cfg.Username, cfg.Password)
-
-	return err
-}
-
-func (app *AppContext) initApi() error {
-	apiHandler := negroni.New(
-		negroni.NewRecovery(),
-		api.NewLogger(),
-	)
-	mainRouter := mux.NewRouter()
-	apiHandler.UseHandler(mainRouter)
-	app.apiHandler = apiHandler
-
-	apiRouter := mainRouter.PathPrefix("/v2").Subrouter()
-
-	catalogController := api.NewCatalogController(&app.config.Catalog)
-	catalogController.AddRoutes(apiRouter)
-
-	serviceInstancesController := api.NewServiceInstancesController(app.cassandraService)
-	serviceInstancesController.AddRoutes(apiRouter)
-
-	return nil
+	log.Println("Stop broker")
+	app.cassandraSession.Close()
 }
