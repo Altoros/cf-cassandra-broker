@@ -37,14 +37,16 @@ func (service *cassandraService) CreateService(r *cf.ServiceCreationRequest) *cf
 		return cf.NewServiceProviderError(cf.ErrorInstanceExists, errors.New(r.InstanceID))
 	}
 
-	err = service.session.Query("CREATE KEYSPACE " + r.InstanceID +
+	keyspace := "cf-" + random.Hex(10)
+
+	err = service.session.Query("CREATE KEYSPACE " + keyspace +
 		" WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 3};").Exec()
 	if err != nil {
 		panic(err.Error())
 	}
 
-	err = service.session.Query("INSERT INTO instances(id, created_at) VALUES(?, ?)",
-		r.InstanceID, time.Now()).Exec()
+	err = service.session.Query("INSERT INTO instances(id, keyspace, created_at) VALUES(?, ?, ?)",
+		r.InstanceID, keyspace, time.Now()).Exec()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -90,6 +92,12 @@ func (service *cassandraService) BindService(r *cf.ServiceBindingRequest) (*cf.S
 	username := random.Hex(10)
 	password := random.Hex(10)
 
+	var keyspace string
+	err = service.session.Query(`SELECT keyspace FROM instances WHERE id = ?`, r.InstanceID).Scan(&keyspace)
+	if err != nil {
+		panic(err.Error())
+	}
+
 	err = service.session.Query(`INSERT INTO
 		bindings(id, instance_id, app_guid, username, password, created_at)
 		VALUES(?, ?, ?, ?, ?, ?)`,
@@ -104,7 +112,7 @@ func (service *cassandraService) BindService(r *cf.ServiceBindingRequest) (*cf.S
 		panic(err.Error())
 	}
 
-	query = fmt.Sprintf("GRANT ALL PERMISSIONS on KEYSPACE %s TO '%s'", r.InstanceID, username)
+	query = fmt.Sprintf("GRANT ALL PERMISSIONS on KEYSPACE %s TO '%s'", keyspace, username)
 	err = service.session.Query(query).Exec()
 	if err != nil {
 		panic(err.Error())
