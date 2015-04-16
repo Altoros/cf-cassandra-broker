@@ -67,7 +67,12 @@ func (service *cassandraService) DeleteService(instanceID string) *cf.ServicePro
 		panic(err.Error())
 	}
 
-	err = service.session.Query("DROP KEYSPACE " + instanceID).Exec()
+	keyspace, err := service.findKeyspaceNameByInstanceId(instanceID)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	err = service.session.Query("DROP KEYSPACE " + keyspace).Exec()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -89,11 +94,9 @@ func (service *cassandraService) BindService(r *cf.ServiceBindingRequest) (*cf.S
 		return nil, cf.NewServiceProviderError(cf.ErrorInstanceExists, errors.New(r.BindingID))
 	}
 
-	username := random.Hex(10)
+	username := "cf-" + random.Hex(10)
 	password := random.Hex(10)
-
-	var keyspace string
-	err = service.session.Query(`SELECT keyspace FROM instances WHERE id = ?`, r.InstanceID).Scan(&keyspace)
+	keyspace, err := service.findKeyspaceNameByInstanceId(r.InstanceID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -184,4 +187,14 @@ func (service *cassandraService) isBindingExist(bindingID string) bool {
 	}
 
 	return recordsCount > 0
+}
+
+func (service *cassandraService) findKeyspaceNameByInstanceId(instanceID string) (string, error) {
+	var keyspace string
+	query := "SELECT keyspace FROM instances WHERE id = ?"
+	err := service.session.Query(query, instanceID).Scan(&keyspace)
+	if err != nil {
+		return "", err
+	}
+	return keyspace, nil
 }
