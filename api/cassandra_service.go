@@ -37,15 +37,16 @@ func (service *cassandraService) CreateService(r *cf.ServiceCreationRequest) *cf
 		return cf.NewServiceProviderError(cf.ErrorInstanceExists, errors.New(r.InstanceID))
 	}
 
-	keyspace := "cf-" + random.Hex(10)
+	keyspace := "cf" + random.Hex(10)
 
-	err = service.session.Query("CREATE KEYSPACE " + keyspace +
-		" WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 3};").Exec()
+	query := "CREATE KEYSPACE " + keyspace +
+		" WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 3};"
+	err = service.session.Query(query).Exec()
 	if err != nil {
 		panic(err.Error())
 	}
 
-	err = service.session.Query("INSERT INTO instances(id, keyspace, created_at) VALUES(?, ?, ?)",
+	err = service.session.Query("INSERT INTO instances(id, keyspace_name, created_at) VALUES(?, ?, ?)",
 		r.InstanceID, keyspace, time.Now()).Exec()
 	if err != nil {
 		panic(err.Error())
@@ -191,7 +192,7 @@ func (service *cassandraService) isBindingExist(bindingID string) bool {
 
 func (service *cassandraService) findKeyspaceNameByInstanceId(instanceID string) (string, error) {
 	var keyspace string
-	query := "SELECT keyspace FROM instances WHERE id = ?"
+	query := "SELECT keyspace_name FROM instances WHERE id = ?"
 	err := service.session.Query(query, instanceID).Scan(&keyspace)
 	if err != nil {
 		return "", err
