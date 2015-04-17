@@ -19,10 +19,23 @@ type ServiceProvider interface {
 
 	// BindService binds to specified service instance and
 	// Returns credentials necessary to establish connection to that service
-	BindService(r *cf.ServiceBindingRequest) (*cf.ServiceBindingResponse, *cf.ServiceProviderError)
+	BindService(r *cf.ServiceBindingRequest) (*ServiceBindingResponse, *cf.ServiceProviderError)
 
 	// UnbindService removes previously created binding
 	UnbindService(instanceID, bindingID string) *cf.ServiceProviderError
+}
+
+type ServiceBindingResponse struct {
+	Credentials ServiceCredentials `json:"credentials"`
+}
+
+type ServiceCredentials struct {
+	Nodes    []string `json:"nodes"`
+	Port     string   `json:"port"`
+	Username string   `json:"username"`
+	Password string   `json:"password"`
+	Vhost    string   `json:"vhost"`
+	Keyspace string   `json:"keyspace"`
 }
 
 type cassandraService struct {
@@ -83,7 +96,7 @@ func (service *cassandraService) DeleteService(instanceID string) *cf.ServicePro
 
 // BindService binds to specified service instance and
 // Returns credentials necessary to establish connection to that service
-func (service *cassandraService) BindService(r *cf.ServiceBindingRequest) (*cf.ServiceBindingResponse, *cf.ServiceProviderError) {
+func (service *cassandraService) BindService(r *cf.ServiceBindingRequest) (*ServiceBindingResponse, *cf.ServiceProviderError) {
 	var err error
 	var query string
 
@@ -122,10 +135,12 @@ func (service *cassandraService) BindService(r *cf.ServiceBindingRequest) (*cf.S
 		panic(err.Error())
 	}
 
-	response := &cf.ServiceBindingResponse{
-		Credentials: map[string]string{
-			"username": username,
-			"password": password,
+	response := &ServiceBindingResponse{
+		Credentials: ServiceCredentials{
+			Username: username,
+			Password: password,
+			Vhost:    keyspace,
+			Keyspace: keyspace,
 		},
 	}
 

@@ -21,13 +21,13 @@ var (
 
 type ApiHandler struct {
 	Handler *negroni.Negroni
-	Catalog *config.CatalogConfig
+	Config  *config.Config
 	Service ServiceProvider
 }
 
-func New(catalog *config.CatalogConfig, session *gocql.Session) http.Handler {
+func New(appConfig *config.Config, session *gocql.Session) http.Handler {
 	apiHandler := new(ApiHandler)
-	apiHandler.Catalog = catalog
+	apiHandler.Config = appConfig
 
 	apiLogger := NewLogger()
 	panicRecovery := negroni.NewRecovery()
@@ -63,7 +63,7 @@ func writeError(w http.ResponseWriter, err *cf.ServiceProviderError) {
 }
 
 func (a *ApiHandler) ShowCatalog(w http.ResponseWriter, r *http.Request) {
-	renderer.JSON(w, http.StatusOK, a.Catalog)
+	renderer.JSON(w, http.StatusOK, a.Config.Catalog)
 }
 
 func (a *ApiHandler) CreateServiceInstance(w http.ResponseWriter, r *http.Request) {
@@ -112,7 +112,11 @@ func (a *ApiHandler) CreateServiceBinding(w http.ResponseWriter, r *http.Request
 	serviceBindingRequest.BindingID = vars["binding_id"]
 
 	serviceBindingResponse, serviceError := a.Service.BindService(serviceBindingRequest)
+
 	if serviceError == nil {
+		serviceBindingResponse.Credentials.Port = a.Config.Cassandra.PortString()
+		serviceBindingResponse.Credentials.Nodes = a.Config.Cassandra.Nodes
+
 		renderer.JSON(w, http.StatusCreated, serviceBindingResponse)
 	} else {
 		writeError(w, serviceError)

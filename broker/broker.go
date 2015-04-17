@@ -37,7 +37,7 @@ func New(appConfig *config.Config) (*AppContext, error) {
 
 	app.serveMux = http.NewServeMux()
 	apiAuthHandler := httpauth.SimpleBasicAuth(appConfig.Username, appConfig.Password)
-	api := api.New(&app.config.Catalog, app.cassandraSession)
+	api := api.New(app.config, app.cassandraSession)
 	app.serveMux.Handle("/v2/", apiAuthHandler(api))
 
 	return app, nil

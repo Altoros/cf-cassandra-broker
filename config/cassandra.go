@@ -1,5 +1,7 @@
 package config
 
+import "strconv"
+
 type CassandraConfig struct {
 	Nodes    []string `yaml:"nodes"`
 	Port     uint16   `yaml:"port"`
@@ -10,4 +12,8 @@ type CassandraConfig struct {
 
 var defaultCassandraConfig = CassandraConfig{
 	Port: 9042,
+}
+
+func (c *CassandraConfig) PortString() string {
+	return strconv.Itoa(int(c.Port))
 }

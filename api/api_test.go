@@ -37,7 +37,7 @@ func (s *mockCassandraService) DeleteService(instanceID string) *cf.ServiceProvi
 	return nil
 }
 
-func (s *mockCassandraService) BindService(r *cf.ServiceBindingRequest) (*cf.ServiceBindingResponse, *cf.ServiceProviderError) {
+func (s *mockCassandraService) BindService(r *cf.ServiceBindingRequest) (*api.ServiceBindingResponse, *cf.ServiceProviderError) {
 	if !s.InstanceExist {
 		return nil, cf.NewServiceProviderError(cf.ErrorInstanceNotFound, errors.New(r.InstanceID))
 	}
@@ -46,10 +46,12 @@ func (s *mockCassandraService) BindService(r *cf.ServiceBindingRequest) (*cf.Ser
 		return nil, cf.NewServiceProviderError(cf.ErrorInstanceExists, errors.New(r.BindingID))
 	}
 
-	response := &cf.ServiceBindingResponse{
-		Credentials: map[string]string{
-			"username": "username",
-			"password": "password",
+	response := &api.ServiceBindingResponse{
+		Credentials: api.ServiceCredentials{
+			Username: "username",
+			Password: "password",
+			Keyspace: "keyspace",
+			Vhost:    "keyspace",
 		},
 	}
 	return response, nil
@@ -78,6 +80,7 @@ var _ = Describe("API", func() {
 		apiInstance = api.ApiHandler{
 			Handler: negroni.New(),
 			Service: cassandraService,
+			Config:  &config.Config{},
 		}
 		apiInstance.DefineRoutes()
 		recorder = httptest.NewRecorder()
@@ -120,7 +123,7 @@ var _ = Describe("API", func() {
 				},
 			}
 
-			apiInstance.Catalog = &config.CatalogConfig{
+			apiInstance.Config.Catalog = config.CatalogConfig{
 				Services: []config.ServiceConfig{service},
 			}
 
@@ -309,6 +312,10 @@ var _ = Describe("API", func() {
 
 			Context("Binding does not exists", func() {
 				BeforeEach(func() {
+					apiInstance.Config.Cassandra = config.CassandraConfig{
+						Nodes: []string{"host1", "host2"},
+						Port:  123,
+					}
 					cassandraService.InstanceExist = true
 					request, _ = http.NewRequest("PUT", "/v2/service_instances/foo/service_bindings/bar", strings.NewReader("{}"))
 					apiInstance.ServeHTTP(recorder, request)
@@ -327,9 +334,12 @@ var _ = Describe("API", func() {
 {
 	"credentials": {
 		"username": "username",
-		"password": "password"
-	},
-	"syslog_drain_url": ""
+		"password": "password",
+		"nodes": ["host1", "host2"],
+		"port": "123",
+		"keyspace": "keyspace",
+		"vhost": "keyspace"
+	}
 }`))
 				})
 			})
