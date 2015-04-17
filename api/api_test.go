@@ -56,6 +56,14 @@ func (s *mockCassandraService) BindService(r *cf.ServiceBindingRequest) (*cf.Ser
 }
 
 func (s *mockCassandraService) UnbindService(instanceID, bindingID string) *cf.ServiceProviderError {
+	if !s.InstanceExist {
+		return cf.NewServiceProviderError(cf.ErrorInstanceNotFound, errors.New(instanceID))
+	}
+
+	if !s.BindingExist {
+		return cf.NewServiceProviderError(cf.ErrorInstanceNotFound, errors.New(bindingID))
+	}
+
 	return nil
 }
 
@@ -323,6 +331,66 @@ var _ = Describe("API", func() {
 	},
 	"syslog_drain_url": ""
 }`))
+				})
+			})
+		})
+	})
+
+	Describe("DELETE /v2/service_instances/:instance_id/service_bindings/:binding_id", func() {
+		Context("Instance does not exist", func() {
+			BeforeEach(func() {
+				cassandraService.InstanceExist = false
+				request, _ = http.NewRequest("DELETE", "/v2/service_instances/foo/service_bindings/bar", nil)
+				apiInstance.ServeHTTP(recorder, request)
+			})
+
+			It("returns a status code of 410", func() {
+				Ω(recorder.Code).To(Equal(410))
+			})
+
+			It("returns application/json content type", func() {
+				Ω(recorder.Header()["Content-Type"]).To(Equal([]string{"application/json; charset=UTF-8"}))
+			})
+		})
+
+		Context("Instance exists", func() {
+			BeforeEach(func() {
+				cassandraService.InstanceExist = true
+			})
+
+			Context("Binding exists", func() {
+				BeforeEach(func() {
+					cassandraService.BindingExist = true
+					request, _ = http.NewRequest("DELETE", "/v2/service_instances/foo/service_bindings/bar", strings.NewReader("{}"))
+					apiInstance.ServeHTTP(recorder, request)
+				})
+
+				It("returns a status code of 200", func() {
+					Ω(recorder.Code).To(Equal(200))
+				})
+
+				It("returns application/json content type", func() {
+					Ω(recorder.Header()["Content-Type"]).To(Equal([]string{"application/json; charset=UTF-8"}))
+				})
+
+				It("returns empty json", func() {
+					Ω(recorder.Body).To(MatchJSON(`{}`))
+				})
+			})
+
+			Context("Binding does not exists", func() {
+				BeforeEach(func() {
+					cassandraService.BindingExist = false
+					request, _ = http.NewRequest("DELETE", "/v2/service_instances/foo/service_bindings/bar", strings.NewReader("{}"))
+					apiInstance.ServeHTTP(recorder, request)
+				})
+
+				It("returns a status code of 410", func() {
+					Ω(recorder.Code).To(Equal(410))
+				})
+
+				It("returns application/json content type", func() {
+					Ω(recorder.Header()["Content-Type"]).To(Equal([]string{"application/json; charset=UTF-8"}))
 				})
 			})
 		})
