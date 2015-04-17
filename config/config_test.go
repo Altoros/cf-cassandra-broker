@@ -18,6 +18,12 @@ var _ = Describe("Config", func() {
 		It("sets default value for port", func() {
 			Ω(config.Port).To(Equal(uint16(80)))
 		})
+
+		Context("Cassandra", func() {
+			It("sets default value for port", func() {
+				Ω(config.Cassandra.Port).To(Equal(uint16(9042)))
+			})
+		})
 	})
 
 	Describe("Initialize", func() {

@@ -16,7 +16,8 @@ type Config struct {
 }
 
 var defaultConfig = Config{
-	Port: 80,
+	Port:      80,
+	Cassandra: defaultCassandraConfig,
 }
 
 func Default() *Config {
