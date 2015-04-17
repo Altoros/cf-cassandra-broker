@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gocql/gocql"
+	"github.com/goji/httpauth"
 
 	"github.com/Altoros/cf-cassandra-service-broker/api"
 	"github.com/Altoros/cf-cassandra-service-broker/config"
@@ -35,9 +36,9 @@ func New(appConfig *config.Config) (*AppContext, error) {
 	app.cassandraSession = session
 
 	app.serveMux = http.NewServeMux()
-
+	apiAuthHandler := httpauth.SimpleBasicAuth(appConfig.Username, appConfig.Password)
 	api := api.New(&app.config.Catalog, app.cassandraSession)
-	app.serveMux.Handle("/v2/", api)
+	app.serveMux.Handle("/v2/", apiAuthHandler(api))
 
 	return app, nil
 }
