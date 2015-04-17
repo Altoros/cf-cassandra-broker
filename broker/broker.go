@@ -7,8 +7,8 @@ import (
 	"github.com/gocql/gocql"
 	"github.com/goji/httpauth"
 
-	"github.com/Altoros/cf-cassandra-service-broker/api"
-	"github.com/Altoros/cf-cassandra-service-broker/config"
+	"github.com/Altoros/cf-cassandra-broker/api"
+	"github.com/Altoros/cf-cassandra-broker/config"
 )
 
 type AppContext struct {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Altoros/cf-cassandra-service-broker/random"
+	"github.com/Altoros/cf-cassandra-broker/random"
 	"github.com/cloudfoundry-community/types-cf"
 	"github.com/gocql/gocql"
 )

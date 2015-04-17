@@ -23,8 +23,6 @@ var defaultConfig = Config{
 func Default() *Config {
 	config := defaultConfig
 
-	// config.Process()
-
 	return &config
 }
 
@@ -49,8 +47,6 @@ func InitFromFile(path string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// c.Process()
 
 	return config, nil
 }

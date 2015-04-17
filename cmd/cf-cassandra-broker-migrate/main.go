@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Altoros/cf-cassandra-service-broker/config"
-	"github.com/Altoros/cf-cassandra-service-broker/migrate"
+	"github.com/Altoros/cf-cassandra-broker/config"
+	"github.com/Altoros/cf-cassandra-broker/migrate"
 )
 
 var configFile string

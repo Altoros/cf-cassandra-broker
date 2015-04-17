@@ -3,7 +3,7 @@ package migrate
 import (
 	"fmt"
 
-	"github.com/Altoros/cf-cassandra-service-broker/config"
+	"github.com/Altoros/cf-cassandra-broker/config"
 	"github.com/gocql/gocql"
 )
 

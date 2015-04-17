@@ -1,7 +1,7 @@
 package config_test
 
 import (
-	. "github.com/Altoros/cf-cassandra-service-broker/config"
+	. "github.com/Altoros/cf-cassandra-broker/config"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

@@ -6,8 +6,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/Altoros/cf-cassandra-service-broker/broker"
-	"github.com/Altoros/cf-cassandra-service-broker/config"
+	"github.com/Altoros/cf-cassandra-broker/broker"
+	"github.com/Altoros/cf-cassandra-broker/config"
 )
 
 var configFile string

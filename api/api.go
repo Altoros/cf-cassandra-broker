@@ -11,7 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
 
-	"github.com/Altoros/cf-cassandra-service-broker/config"
+	"github.com/Altoros/cf-cassandra-broker/config"
 )
 
 var (

@@ -1,7 +1,7 @@
 package random_test
 
 import (
-	"github.com/Altoros/cf-cassandra-service-broker/random"
+	"github.com/Altoros/cf-cassandra-broker/random"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
