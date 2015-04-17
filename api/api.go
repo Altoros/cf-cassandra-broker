@@ -47,7 +47,7 @@ func (a *ApiHandler) DefineRoutes() {
 	router.HandleFunc("/v2/service_instances/{instance_id}", a.CreateServiceInstance).Methods("PUT")
 	router.HandleFunc("/v2/service_instances/{instance_id}", a.DeleteServiceInstance).Methods("DELETE")
 	router.HandleFunc("/v2/service_instances/{instance_id}/service_bindings/{binding_id}", a.CreateServiceBinding).Methods("PUT")
-	router.HandleFunc("/v2/service_instances/{instance_id}/service_bindings/{binding_id}", a.DeleteServiceBinding).Methods("DLETE")
+	router.HandleFunc("/v2/service_instances/{instance_id}/service_bindings/{binding_id}", a.DeleteServiceBinding).Methods("DELETE")
 
 	a.Handler.UseHandler(router)
 }

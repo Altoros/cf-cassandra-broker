@@ -63,12 +63,12 @@ func (service *cassandraService) DeleteService(instanceID string) *cf.ServicePro
 		return cf.NewServiceProviderError(cf.ErrorInstanceNotFound, errors.New(instanceID))
 	}
 
-	err = service.session.Query("DELETE FROM instances WHERE id=?", instanceID).Exec()
+	keyspace, err := service.findKeyspaceNameByInstanceId(instanceID)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	keyspace, err := service.findKeyspaceNameByInstanceId(instanceID)
+	err = service.session.Query("DELETE FROM instances WHERE id=?", instanceID).Exec()
 	if err != nil {
 		panic(err.Error())
 	}
