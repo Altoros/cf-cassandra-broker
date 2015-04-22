@@ -20,16 +20,7 @@ type AppContext struct {
 func New(appConfig *config.Config) (*AppContext, error) {
 	app := new(AppContext)
 	app.config = appConfig
-
-	cluster := gocql.NewCluster(appConfig.Cassandra.Nodes...)
-	cluster.Keyspace = appConfig.Cassandra.Keyspace
-	cluster.Consistency = gocql.One
-	cluster.Authenticator = gocql.PasswordAuthenticator{
-		Username: appConfig.Cassandra.Username,
-		Password: appConfig.Cassandra.Password,
-	}
-
-	session, err := cluster.CreateSession()
+	session, err := newCassandraSession(&appConfig.Cassandra)
 	if err != nil {
 		return nil, err
 	}
@@ -52,4 +43,20 @@ func (app *AppContext) Start() {
 func (app *AppContext) Stop() {
 	log.Println("Stop broker")
 	app.cassandraSession.Close()
+}
+
+func newCassandraSession(cfg *config.CassandraConfig) (*gocql.Session, error) {
+	cluster := gocql.NewCluster(cfg.Nodes...)
+	cluster.Keyspace = cfg.Keyspace
+	cluster.Consistency = gocql.One
+	cluster.Authenticator = gocql.PasswordAuthenticator{
+		Username: cfg.Username,
+		Password: cfg.Password,
+	}
+
+	session, err := cluster.CreateSession()
+	if err != nil {
+		return nil, err
+	}
+	return session, nil
 }
