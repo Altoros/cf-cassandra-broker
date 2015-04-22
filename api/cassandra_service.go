@@ -81,6 +81,22 @@ func (service *cassandraService) DeleteService(instanceID string) *cf.ServicePro
 		panic(err.Error())
 	}
 
+	var bindingID, username string
+	iter := service.session.Query("SELECT id, username FROM bindings WHERE instance_id=?", instanceID).Iter()
+	for iter.Scan(&bindingID, &username) {
+		err = service.deleteBinding(bindingID)
+		if err = iter.Close(); err != nil {
+			panic(err.Error())
+		}
+		err = service.dropUser(username)
+		if err = iter.Close(); err != nil {
+			panic(err.Error())
+		}
+	}
+	if err = iter.Close(); err != nil {
+		panic(err.Error())
+	}
+
 	err = service.session.Query("DELETE FROM instances WHERE id=?", instanceID).Exec()
 	if err != nil {
 		panic(err.Error())
@@ -166,14 +182,12 @@ func (service *cassandraService) UnbindService(instanceID, bindingID string) *cf
 		}
 	}
 
-	query = fmt.Sprintf("DROP USER '%s'", username)
-	err = service.session.Query(query).Exec()
+	err = service.dropUser(username)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	query = "DELETE FROM bindings WHERE id = ?"
-	err = service.session.Query(query, bindingID).Exec()
+	err = service.deleteBinding(bindingID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -213,4 +227,22 @@ func (service *cassandraService) findKeyspaceNameByInstanceId(instanceID string)
 		return "", err
 	}
 	return keyspace, nil
+}
+
+func (service *cassandraService) dropUser(name string) error {
+	query := fmt.Sprintf("DROP USER '%s'", name)
+	err := service.session.Query(query).Exec()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (service *cassandraService) deleteBinding(bindingID string) error {
+	query := "DELETE FROM bindings WHERE id = ?"
+	err := service.session.Query(query, bindingID).Exec()
+	if err != nil {
+		return err
+	}
+	return nil
 }
