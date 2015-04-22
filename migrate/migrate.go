@@ -46,7 +46,7 @@ func connectToCassandra(config *config.CassandraConfig, useKeyspace bool) (*gocq
 	if useKeyspace {
 		cluster.Keyspace = config.Keyspace
 	}
-	// cluster.Consistency = gocql.One
+	cluster.Consistency = gocql.Quorum
 	cluster.Authenticator = gocql.PasswordAuthenticator{
 		Username: config.Username,
 		Password: config.Password,
@@ -64,7 +64,7 @@ func createKeyspace(session *gocql.Session, keyspace string) error {
 	query := fmt.Sprintf(`
 CREATE KEYSPACE IF NOT EXISTS %s
 WITH replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 }`, keyspace)
-	err := session.Query(query).Exec()
+	err := session.Query(query).Consistency(gocql.Quorum).Exec()
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ CREATE TABLE bindings (
 	password text,
 	created_at timestamp
 )`
-	err = session.Query(createTableQuery).Exec()
+	err = session.Query(createTableQuery).Consistency(gocql.Quorum).Exec()
 	if err != nil {
 		return err
 	}
