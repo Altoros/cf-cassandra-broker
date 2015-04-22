@@ -338,7 +338,8 @@ var _ = Describe("API", func() {
 		"nodes": ["host1", "host2"],
 		"port": "123",
 		"keyspace": "keyspace",
-		"vhost": "keyspace"
+		"vhost": "keyspace",
+		"jdbcUrl": "jdbc:cassandra:username/password@host1--host2/keyspace"
 	}
 }`))
 				})

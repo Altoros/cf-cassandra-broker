@@ -36,6 +36,7 @@ type ServiceCredentials struct {
 	Password string   `json:"password"`
 	Vhost    string   `json:"vhost"`
 	Keyspace string   `json:"keyspace"`
+	JdbcUrl  string   `json:"jdbcUrl"`
 }
 
 type cassandraService struct {
