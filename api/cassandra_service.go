@@ -103,7 +103,7 @@ func (service *cassandraService) DeleteService(instanceID string) *cf.ServicePro
 		panic(err.Error())
 	}
 
-	err = service.session.Query("DROP KEYSPACE " + keyspace).Exec()
+	err = service.dropKeyspaceIfExist(keyspace)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -236,6 +236,29 @@ func (service *cassandraService) dropUser(name string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (service *cassandraService) dropKeyspaceIfExist(keyspace string) error {
+	var query string
+	var err error
+
+	var count int
+	query = "SELECT COUNT(*) FROM system.schema_keyspaces WHERE keyspace_name=?"
+	err = service.session.Query(query, keyspace).Scan(&count)
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		return nil
+	}
+
+	err = service.session.Query("DROP KEYSPACE " + keyspace).Exec()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
