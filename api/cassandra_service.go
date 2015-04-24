@@ -132,14 +132,6 @@ func (service *cassandraService) BindService(r *cf.ServiceBindingRequest) (*Serv
 		panic(err.Error())
 	}
 
-	err = service.session.Query(`INSERT INTO
-		bindings(id, instance_id, app_guid, username, password, created_at)
-		VALUES(?, ?, ?, ?, ?, ?)`,
-		r.BindingID, r.InstanceID, r.AppGUID, username, password, time.Now()).Exec()
-	if err != nil {
-		panic(err.Error())
-	}
-
 	query = fmt.Sprintf("CREATE USER '%s' WITH PASSWORD '%s' NOSUPERUSER", username, password)
 	err = service.session.Query(query).Exec()
 	if err != nil {
@@ -148,6 +140,14 @@ func (service *cassandraService) BindService(r *cf.ServiceBindingRequest) (*Serv
 
 	query = fmt.Sprintf("GRANT ALL PERMISSIONS on KEYSPACE %s TO '%s'", keyspace, username)
 	err = service.session.Query(query).Exec()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	err = service.session.Query(`INSERT INTO
+		bindings(id, instance_id, app_guid, username, password, created_at)
+		VALUES(?, ?, ?, ?, ?, ?)`,
+		r.BindingID, r.InstanceID, r.AppGUID, username, password, time.Now()).Exec()
 	if err != nil {
 		panic(err.Error())
 	}
