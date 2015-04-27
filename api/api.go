@@ -2,10 +2,8 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/cloudfoundry-community/types-cf"
 	"github.com/codegangsta/negroni"
@@ -117,12 +115,10 @@ func (a *ApiHandler) CreateServiceBinding(w http.ResponseWriter, r *http.Request
 
 	if serviceError == nil {
 		creds := &serviceBindingResponse.Credentials
-		nodes := a.Config.Cassandra.Nodes
-		port := a.Config.Cassandra.PortString()
 
-		creds.Port = port
-		creds.Nodes = nodes
-		creds.JdbcUrl = jdbcUrl(nodes, port, creds.Username, creds.Password, creds.Keyspace)
+		creds.Nodes = a.Config.Cassandra.Nodes
+		creds.CqlPort = a.Config.Cassandra.CqlPort
+		creds.ThriftPort = a.Config.Cassandra.ThriftPort
 
 		renderer.JSON(w, http.StatusCreated, serviceBindingResponse)
 	} else {
@@ -139,9 +135,4 @@ func (a *ApiHandler) DeleteServiceBinding(w http.ResponseWriter, r *http.Request
 	} else {
 		writeError(w, serviceError)
 	}
-}
-
-func jdbcUrl(nodes []string, port string, username string, password string, keyspace string) string {
-	nodesString := strings.Join(nodes, "--")
-	return fmt.Sprintf("jdbc:cassandra:%s/%s@%s/%s", username, password, nodesString, keyspace)
 }

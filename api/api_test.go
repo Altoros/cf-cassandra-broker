@@ -51,7 +51,6 @@ func (s *mockCassandraService) BindService(r *cf.ServiceBindingRequest) (*api.Se
 			Username: "username",
 			Password: "password",
 			Keyspace: "keyspace",
-			Vhost:    "keyspace",
 		},
 	}
 	return response, nil
@@ -313,8 +312,9 @@ var _ = Describe("API", func() {
 			Context("Binding does not exists", func() {
 				BeforeEach(func() {
 					apiInstance.Config.Cassandra = config.CassandraConfig{
-						Nodes: []string{"host1", "host2"},
-						Port:  123,
+						Nodes:      []string{"host1", "host2"},
+						CqlPort:    123,
+						ThriftPort: 456,
 					}
 					cassandraService.InstanceExist = true
 					request, _ = http.NewRequest("PUT", "/v2/service_instances/foo/service_bindings/bar", strings.NewReader("{}"))
@@ -336,10 +336,9 @@ var _ = Describe("API", func() {
 		"username": "username",
 		"password": "password",
 		"nodes": ["host1", "host2"],
-		"port": "123",
-		"keyspace": "keyspace",
-		"vhost": "keyspace",
-		"jdbcUrl": "jdbc:cassandra:username/password@host1--host2/keyspace"
+		"cql_port": 123,
+		"thrift_port": 456,
+		"keyspace": "keyspace"
 	}
 }`))
 				})

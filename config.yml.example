@@ -5,7 +5,8 @@ port: 8080 # broker port
 cassandra:
   nodes:
   - 127.0.0.1
-  port: 9042
+  cql_port: 9042
+  thrift_port: 9160
   keyspace: broker # administrative keyspace name
   username: cassandra # superuser name
   password: cassandra # superuser password

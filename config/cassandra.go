@@ -1,19 +1,15 @@
 package config
 
-import "strconv"
-
 type CassandraConfig struct {
-	Nodes    []string `yaml:"nodes"`
-	Port     uint16   `yaml:"port"`
-	Keyspace string   `yaml:"keyspace"`
-	Username string   `yaml:"username"`
-	Password string   `yaml:"password"`
+	Nodes      []string `yaml:"nodes"`
+	CqlPort    uint16   `yaml:"cql_port"`
+	ThriftPort uint16   `yaml:"thrift_port"`
+	Keyspace   string   `yaml:"keyspace"`
+	Username   string   `yaml:"username"`
+	Password   string   `yaml:"password"`
 }
 
 var defaultCassandraConfig = CassandraConfig{
-	Port: 9042,
-}
-
-func (c *CassandraConfig) PortString() string {
-	return strconv.Itoa(int(c.Port))
+	CqlPort:    9042,
+	ThriftPort: 9160,
 }

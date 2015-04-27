@@ -30,13 +30,12 @@ type ServiceBindingResponse struct {
 }
 
 type ServiceCredentials struct {
-	Nodes    []string `json:"nodes"`
-	Port     string   `json:"port"`
-	Username string   `json:"username"`
-	Password string   `json:"password"`
-	Vhost    string   `json:"vhost"`
-	Keyspace string   `json:"keyspace"`
-	JdbcUrl  string   `json:"jdbcUrl"`
+	Nodes      []string `json:"nodes"`
+	CqlPort    uint16   `json:"cql_port"`
+	ThriftPort uint16   `json:"thrift_port"`
+	Username   string   `json:"username"`
+	Password   string   `json:"password"`
+	Keyspace   string   `json:"keyspace"`
 }
 
 type cassandraService struct {
@@ -156,7 +155,6 @@ func (service *cassandraService) BindService(r *cf.ServiceBindingRequest) (*Serv
 		Credentials: ServiceCredentials{
 			Username: username,
 			Password: password,
-			Vhost:    keyspace,
 			Keyspace: keyspace,
 		},
 	}

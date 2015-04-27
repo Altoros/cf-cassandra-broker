@@ -20,8 +20,11 @@ var _ = Describe("Config", func() {
 		})
 
 		Context("Cassandra", func() {
-			It("sets default value for port", func() {
-				Ω(config.Cassandra.Port).To(Equal(uint16(9042)))
+			It("sets default value for cql port", func() {
+				Ω(config.Cassandra.CqlPort).To(Equal(uint16(9042)))
+			})
+			It("sets default value for thrift port", func() {
+				Ω(config.Cassandra.ThriftPort).To(Equal(uint16(9160)))
 			})
 		})
 	})
@@ -94,6 +97,8 @@ cassandra:
   keyspace: broker
   username: username
   password: password
+  cql_port: 123
+  thrift_port: 456
 `)
 
 			config.Initialize(b)
@@ -101,6 +106,8 @@ cassandra:
 			Ω(config.Cassandra.Keyspace).To(Equal("broker"))
 			Ω(config.Cassandra.Username).To(Equal("username"))
 			Ω(config.Cassandra.Password).To(Equal("password"))
+			Ω(config.Cassandra.CqlPort).To(Equal(uint16(123)))
+			Ω(config.Cassandra.ThriftPort).To(Equal(uint16(456)))
 		})
 
 		It("sets username", func() {
