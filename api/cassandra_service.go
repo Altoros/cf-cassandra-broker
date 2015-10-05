@@ -238,12 +238,11 @@ func (service *cassandraService) dropUser(name string) error {
 }
 
 func (service *cassandraService) dropKeyspaceIfExist(keyspace string) error {
-	var query string
 	var err error
-
 	var count int
-	query = "SELECT COUNT(*) FROM system.schema_keyspaces WHERE keyspace_name=?"
-	err = service.session.Query(query, keyspace).Scan(&count)
+
+	selectQ := "SELECT COUNT(*) FROM system.schema_keyspaces WHERE keyspace_name=?"
+	err = service.session.Query(selectQ, keyspace).Scan(&count)
 	if err != nil {
 		return err
 	}
@@ -252,7 +251,9 @@ func (service *cassandraService) dropKeyspaceIfExist(keyspace string) error {
 		return nil
 	}
 
-	err = service.session.Query("DROP KEYSPACE " + keyspace).Exec()
+	query := service.session.Query("DROP KEYSPACE " + keyspace)
+	query.RetryPolicy(&gocql.SimpleRetryPolicy{NumRetries: 3})
+	err = query.Exec()
 	if err != nil {
 		return err
 	}
