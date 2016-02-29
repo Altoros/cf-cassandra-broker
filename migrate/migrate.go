@@ -116,7 +116,7 @@ CREATE TABLE bindings (
 	password text,
 	created_at timestamp
 )`
-	err = session.Query(createTableQuery).Consistency(gocql.Quorum).Exec()
+	err = session.Query(createTableQuery).Consistency(gocql.All).Exec()
 	if err != nil {
 		return err
 	}
