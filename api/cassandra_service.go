@@ -165,20 +165,25 @@ func (service *cassandraService) BindService(r *cf.ServiceBindingRequest) (*Serv
 // UnbindService removes previously created binding
 func (service *cassandraService) UnbindService(instanceID, bindingID string) *cf.ServiceProviderError {
 	var err error
+	var queriedInstanceId string
 
 	if !service.isInstanceExist(instanceID) {
 		return cf.NewServiceProviderError(cf.ErrorInstanceNotFound, errors.New(instanceID))
 	}
 
 	var username string
-	query := "SELECT username FROM bindings WHERE id = ? AND instance_id = ?"
-	err = service.session.Query(query, bindingID, instanceID).Scan(&username)
+	query := "SELECT username, instance_id FROM bindings WHERE id = ?"
+	err = service.session.Query(query, bindingID).Scan(&username, &queriedInstanceId)
 	if err != nil {
 		if err == gocql.ErrNotFound {
 			return cf.NewServiceProviderError(cf.ErrorInstanceNotFound, errors.New(bindingID))
 		} else {
 			panic(err.Error())
 		}
+	}
+
+	if queriedInstanceId != instanceID {
+		panic("wrong instance_id") // should never happen
 	}
 
 	err = service.dropUser(username)

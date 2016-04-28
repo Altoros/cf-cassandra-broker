@@ -72,23 +72,14 @@ WITH replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 }`, ke
 }
 
 func createInstancesTable(session *gocql.Session, keyspace string) error {
-	exist, err := isTableExist(session, keyspace, "instances")
-	if err != nil {
-		return err
-	}
-
-	if exist {
-		return nil
-	}
-
 	createTableQuery := `
-CREATE TABLE instances (
+CREATE TABLE IF NOT EXISTS instances (
 	id text PRIMARY KEY,
 	keyspace_name text,
 	created_at timestamp
 )`
 
-	err = session.Query(createTableQuery).Exec()
+	err := session.Query(createTableQuery).Exec()
 	if err != nil {
 		return fmt.Errorf("failed to create table: %s", err.Error())
 	}
@@ -96,19 +87,8 @@ CREATE TABLE instances (
 }
 
 func createBindingsTable(session *gocql.Session, keyspace string) error {
-	var err error
-
-	exist, err := isTableExist(session, keyspace, "bindings")
-	if err != nil {
-		return fmt.Errorf("failed to query whether table exist: %s", err.Error())
-	}
-
-	if exist {
-		return nil
-	}
-
 	createTableQuery := `
-CREATE TABLE bindings (
+CREATE TABLE IF NOT EXISTS bindings (
 	id text PRIMARY KEY,
 	instance_id text,
 	app_guid text,
@@ -116,29 +96,10 @@ CREATE TABLE bindings (
 	password text,
 	created_at timestamp
 )`
-	err = session.Query(createTableQuery).Consistency(gocql.All).Exec()
+	err := session.Query(createTableQuery).Consistency(gocql.All).Exec()
 	if err != nil {
 		return fmt.Errorf("failed to create table: %s", err.Error())
 	}
 
-	err = session.Query("CREATE INDEX ON bindings (instance_id)").Exec()
-	if err != nil {
-		return fmt.Errorf("failed to create index: %s", err.Error())
-	}
-
 	return nil
-}
-
-func isTableExist(session *gocql.Session, keyspace string, table string) (bool, error) {
-	var count int
-	query := `
-SELECT COUNT(*)
-FROM system.schema_columnfamilies
-WHERE keyspace_name=? AND columnfamily_name=?`
-	err := session.Query(query, keyspace, table).Scan(&count)
-	if err != nil {
-		return false, err
-	}
-
-	return count > 0, nil
 }
