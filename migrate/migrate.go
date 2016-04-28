@@ -12,30 +12,30 @@ func Run(config *config.CassandraConfig) error {
 
 	session, err := connectToCassandra(config, false)
 	if err != nil {
-		return err
+		return fmt.Errorf("error connecting to cassandra: %s", err.Error())
 	}
 
 	err = createKeyspace(session, config.Keyspace)
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating keyspace: %s", err.Error())
 	}
 
 	session.Close()
 
 	session, err = connectToCassandra(config, true)
 	if err != nil {
-		return err
+		return fmt.Errorf("error connecting to cassandra: %s", err.Error())
 	}
 	defer session.Close()
 
 	err = createInstancesTable(session, config.Keyspace)
 	if err != nil {
-		return fmt.Errorf("error creating instances table: %s", err.Error())
+		return fmt.Errorf("error creating instances: %s", err.Error())
 	}
 
 	err = createBindingsTable(session, config.Keyspace)
 	if err != nil {
-		return fmt.Errorf("error creating bindings table: %s", err.Error())
+		return fmt.Errorf("error creating bindings: %s", err.Error())
 	}
 
 	return nil
@@ -90,7 +90,7 @@ CREATE TABLE instances (
 
 	err = session.Query(createTableQuery).Exec()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create table: %s", err.Error())
 	}
 	return nil
 }
@@ -100,7 +100,7 @@ func createBindingsTable(session *gocql.Session, keyspace string) error {
 
 	exist, err := isTableExist(session, keyspace, "bindings")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to query whether table exist: %s", err.Error())
 	}
 
 	if exist {
@@ -118,12 +118,12 @@ CREATE TABLE bindings (
 )`
 	err = session.Query(createTableQuery).Consistency(gocql.All).Exec()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create table: %s", err.Error())
 	}
 
 	err = session.Query("CREATE INDEX ON bindings (instance_id)").Exec()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create index: %s", err.Error())
 	}
 
 	return nil
