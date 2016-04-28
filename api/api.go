@@ -31,6 +31,7 @@ func New(appConfig *config.Config, session *gocql.Session) http.Handler {
 
 	apiLogger := NewLogger()
 	panicRecovery := negroni.NewRecovery()
+	panicRecovery.PrintStack = false
 	panicRecovery.Logger = apiLogger.Logger
 	apiHandler.Handler = negroni.New(apiLogger, panicRecovery)
 	apiHandler.Service = &cassandraService{session: session}
