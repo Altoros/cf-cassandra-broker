@@ -1,6 +1,7 @@
 package broker
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -22,7 +23,7 @@ func New(appConfig *config.Config) (*AppContext, error) {
 	app.config = appConfig
 	session, err := newCassandraSession(&appConfig.Cassandra)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't start cassandra session: %s", err)
 	}
 	app.cassandraSession = session
 

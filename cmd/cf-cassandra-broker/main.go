@@ -33,12 +33,12 @@ func main() {
 
 	config, err := config.InitFromFile(configFile)
 	if err != nil {
-		log.Fatalf("Can't read config file: %s", err.Error())
+		log.Fatalf("Error reading config file: %s", err.Error())
 	}
 
 	broker, err := broker.New(config)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatalf("Error creating broker: %s", err.Error())
 	}
 
 	go func() {
