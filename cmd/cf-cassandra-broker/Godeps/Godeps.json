@@ -25,8 +25,8 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry-community/types-cf",
-			"Comment": "v.1.4-1-g3434c7d",
-			"Rev": "3434c7da6d73a0930eff321f7477795e0cd2a615"
+			"Comment": "v.1.4-6-gdf821ae",
+			"Rev": "df821aefadfebfe14105cf27302b1f5ea8a8c673"
 		},
 		{
 			"ImportPath": "github.com/codegangsta/negroni",
