@@ -33,7 +33,7 @@ func main() {
 
 	config, err := config.InitFromFile(configFile)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatalf("Can't read config file: %s", err.Error())
 	}
 
 	broker, err := broker.New(config)
