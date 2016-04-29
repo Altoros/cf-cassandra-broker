@@ -81,22 +81,6 @@ func (service *cassandraService) DeleteService(instanceID string) *cf.ServicePro
 		panic(err.Error())
 	}
 
-	var bindingID, username string
-	iter := service.session.Query("SELECT id, username FROM bindings WHERE instance_id=?", instanceID).Iter()
-	for iter.Scan(&bindingID, &username) {
-		err = service.deleteBinding(bindingID)
-		if err = iter.Close(); err != nil {
-			panic(err.Error())
-		}
-		err = service.dropUser(username)
-		if err = iter.Close(); err != nil {
-			panic(err.Error())
-		}
-	}
-	if err = iter.Close(); err != nil {
-		panic(err.Error())
-	}
-
 	err = service.session.Query("DELETE FROM instances WHERE id=?", instanceID).Exec()
 	if err != nil {
 		panic(err.Error())
