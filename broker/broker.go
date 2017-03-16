@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gocql/gocql"
 	"github.com/goji/httpauth"
@@ -49,7 +50,9 @@ func (app *AppContext) Stop() {
 func newCassandraSession(cfg *config.CassandraConfig) (*gocql.Session, error) {
 	cluster := gocql.NewCluster(cfg.Nodes...)
 	cluster.Keyspace = cfg.Keyspace
-	cluster.Consistency = gocql.One
+	cluster.Timeout = 1 * time.Minute
+	cluster.NumConns = 1
+	cluster.Consistency = gocql.All
 	cluster.Authenticator = gocql.PasswordAuthenticator{
 		Username: cfg.Username,
 		Password: cfg.Password,

@@ -230,7 +230,7 @@ func (service *cassandraService) dropKeyspaceIfExist(keyspace string) error {
 	var err error
 	var count int
 
-	selectQ := "SELECT COUNT(*) FROM system.schema_keyspaces WHERE keyspace_name=?"
+	selectQ := "SELECT COUNT(*) FROM system_schema.keyspaces WHERE keyspace_name=?"
 	err = service.session.Query(selectQ, keyspace).Scan(&count)
 	if err != nil {
 		return err
