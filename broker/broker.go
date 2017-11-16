@@ -52,7 +52,11 @@ func newCassandraSession(cfg *config.CassandraConfig) (*gocql.Session, error) {
 	cluster.Keyspace = cfg.Keyspace
 	cluster.Timeout = 1 * time.Minute
 	cluster.NumConns = 1
-	cluster.Consistency = gocql.All
+	if len(cfg.Nodes) == 1 {
+		cluster.Consistency = gocql.One
+	} else {
+		cluster.Consistency = gocql.All
+	}
 	cluster.Authenticator = gocql.PasswordAuthenticator{
 		Username: cfg.Username,
 		Password: cfg.Password,
