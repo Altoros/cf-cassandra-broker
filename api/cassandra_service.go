@@ -121,7 +121,7 @@ func (service *cassandraService) BindService(r *cf.ServiceBindingRequest) (*Serv
 		panic(err.Error())
 	}
 
-	query = fmt.Sprintf("GRANT ALL PERMISSIONS on KEYSPACE %s TO \"%s\"", keyspace, username)
+	query = fmt.Sprintf("GRANT ALL PERMISSIONS on KEYSPACE %s TO '%s'", keyspace, username)
 	err = service.session.Query(query).Exec()
 	if err != nil {
 		panic(err.Error())
