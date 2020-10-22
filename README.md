@@ -20,8 +20,8 @@ To run all specs: `ginkgo -r`
 
 ## Installation
 
-go get http://github.com/altoros/cf-cassandra-broker/cmd/cf-cassandra-broker
-go get http://github.com/altoros/cf-cassandra-broker/cmd/cf-cassandra-broker-migrate
+go get [github.com/altoros/cf-cassandra-broker/cmd/cf-cassandra-broker](http://github.com/altoros/cf-cassandra-broker/cmd/cf-cassandra-broker)  
+go get [github.com/altoros/cf-cassandra-broker/cmd/cf-cassandra-broker-migrate](http://github.com/altoros/cf-cassandra-broker/cmd/cf-cassandra-broker-migrate)  
 
 ## Usage
 
